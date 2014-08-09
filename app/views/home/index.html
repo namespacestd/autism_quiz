@@ -1,0 +1,35 @@
+
+<%= content_for :main_body do %>
+    <input type="text" name="country" id="autocomplete"/>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <script src="/static/js/jquery-ui.js"></script>
+    <script>
+        $(document).ready(function() {
+            $(window).keyup(function (event) {
+                var search_value = $('#autocomplete').val();
+                var formdata = new FormData();
+                formdata.append("search", search_value);
+                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/autocomplete',
+                    data: formdata,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(data) {
+                        console.log(data);
+                        console.log(data[0]);
+                        $( "#autocomplete" ).autocomplete({
+                           source: data
+                       });
+                    },
+                    error: function() {}
+                });
+            });
+        });
+    </script>
+<% end %>
+
