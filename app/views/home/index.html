@@ -53,7 +53,7 @@
 
     <% @random_song = Music.random_song() %>
 
-    <form action="/submit_answer" method="post">
+    <!--<form action="/submit_answer" method="post">-->
         <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
         <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
         <div id="picture-item"> </div>
@@ -64,7 +64,7 @@
             </audio>
         </div>
         <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
-    </form>
+    <!--</form>-->
 
     <div id="clock"></div>
 
@@ -92,7 +92,9 @@
                         var answer = "<div id='retrieved_answer'>" + data + "</div>";
                         $("#clock").html('Time up! The answer was: ' + answer);
                         $("#retrieved_answer").fadeIn(2000);
-                        $("#picture-item").css("background", "url('http://cdn.myanimelist.net/images/anime/13/44187l.jpg') center no-repeat");
+                        $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
+                        $("#picture-item").css("background-size", "contain");
+                        setTimeout(function() { location.reload(true)}, 2000);
                     },
                     error: function() {}
                 });
@@ -137,7 +139,8 @@
                         if(data == "Correct") {
                             $("#clock").countdown('stop');
                             $("#clock").html('Correct!');
-                            $("#picture-item").css("background", "url('http://cdn.myanimelist.net/images/anime/13/44187l.jpg') center no-repeat");
+                            $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
+                            $("#picture-item").css("background-size", "contain");
                             setTimeout(function() { location.reload()}, 2000);
                         }
                     },

@@ -2,8 +2,11 @@
 <%= content_for :main_body do %>
     <form action="/admin/add_op_entry" method="post" enctype="multipart/form-data">
         <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
-        <div> Anime: <input type="text" name="title" id="autocomplete"/> </div>
-        <div> Music File: <input type="file" name='music_file' class="upload" /> </div>
+        <div> Anime: <input type="text" name="title" id="autocomplete" required /> </div>
+        <div> Artist: <input type="text" name="artist" required /> </div>
+        <div> Song Name: <input type="text" name="song_name" required /> </div>
+        <div> Music File: <input type="file" name='music_file' class="upload" required /> </div>
+        <div> Image File: <input type="file" name='image_file' class="upload" required /> </div>
         <input type="submit"></input>
     </form>
 

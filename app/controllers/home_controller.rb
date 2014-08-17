@@ -15,6 +15,7 @@ class HomeController < ActionController::Base
     if !current_search.nil?
         anime_results = Sunspot.search(Anime) do
                              fulltext current_search
+                             order_by(:ranking, :asc)
                          end
         anime_results = anime_results.results.map{|ele| ele.name}
         puts anime_results
@@ -25,6 +26,9 @@ class HomeController < ActionController::Base
   def add_op_entry
     title = params[:title]
     music_file = params[:music_file]
+    artist = params[:artist]
+    image_file = params[:image_file]
+    name = params[:song_name]
 
     target_anime = Anime.where(:name => title)[0]
     
@@ -32,6 +36,9 @@ class HomeController < ActionController::Base
       music_entry = Music.new
       music_entry.music_file = music_file
       music_entry.anime = title
+      music_entry.name = name
+      music_entry.artist = artist
+      music_entry.image = image_file
       music_entry.save()
       redirect_to "/admin/add_page"
     else
