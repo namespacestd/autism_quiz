@@ -49,6 +49,18 @@
         #audio-controls {
             width: 600px;
         }
+        #mini-button {
+            display: inline-block;
+            height: 50px;
+            padding: 10px;
+            padding-top: 30px;
+            border: 1px solid #999;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #mini-button:hover {
+            background-color: grey;
+        }
     </style>
 
     <% @random_song = Music.random_song() %>
@@ -64,6 +76,7 @@
             </audio>
         </div>
         <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
+        <button id="mini-button"></button>
     <!--</form>-->
 
     <div id="clock"></div>
@@ -120,6 +133,7 @@
                     error: function() {}
                 });
             });
+
             $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
                 var answer = $(this).val();
                 console.log(answer);
@@ -147,6 +161,10 @@
                     error: function() {}
                 });
             });
+
+            function try_answer() {
+                
+            }
         });
     </script>
 <% end %>
