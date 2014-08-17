@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>AnimeOpQuiz</title>
-  <script type="text/javascript" src="/static/js/jquery.min.js"/>
+    <head>
+        <title>AnimeOpQuiz</title>
+        <script type="text/javascript" src="/static/js/jquery.min.js"/>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans|Belgrano' rel='stylesheet' type='text/css' />
+        <%= stylesheet_link_tag    "application" %>
+        <%= javascript_include_tag "application" %>
+        <%= csrf_meta_tags %>
+    </head>
 
-  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
-  <%= csrf_meta_tags %>
-
-</head>
-<body>
-    <%= yield :main_body %>
-</body>
+    <body>
+        <div id="main-content">
+            <%= yield :main_body %>
+        </div>
+    </body>
 </html>

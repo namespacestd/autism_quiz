@@ -1,11 +1,102 @@
 
 <%= content_for :main_body do %>
-    <input type="text" name="country" id="autocomplete"/>
+    <style>
+        body, html {
+            font-family: 'Open Sans';
+            font-size: 18px;
+        }
+        #main-content {
+            padding-top: 100px;
+            width: 1000px;
+            margin: 0px auto;
+            text-align: center;
+        }
+        #music-item {
+            padding: 35px 0px;
+        }
+        #picture-item {
+            display: block;
+            margin: 0px auto;
+            padding: 35px 0px;
+            padding-bottom: 0px;
+            height: 400px;
+            width: 400px;
+            background: url('/static/img/question_mark.jpg') center no-repeat;
+        }
+        #main-content input[type="text"] {
+            font-family: 'Open Sans';
+            font-size: 30px;
+            padding: 10px;
+            padding-left: 15px;
+            width: 700px;
+            border: 1px solid #999;
+            border-radius: 5px;
+            text-align: center;
+        }
+        #main-content input[type="text"]:focus {
+            box-shadow: 0 0 7px #60c86c;
+        }
+        #clock {
+            padding: 30px;
+            font-size: 50px;
+            color: darkgrey;
+        }
+        #retrieved_answer {
+            display: none;
+            color: darkgrey;
+            padding: 10px 0px;
+        }
+        #audio-controls {
+            width: 600px;
+        }
+    </style>
+
+    <% @random_song = Music.random_song() %>
+
+    <form action="/submit_answer" method="post">
+        <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+        <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
+        <div id="picture-item"> </div>
+        <div id="music-item">
+            <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
+                <source src="<%= @random_song.music_file %>" type="audio/mpeg">
+                <embed height="50" width="100" src="<%= @random_song.music_file %>">
+            </audio>
+        </div>
+        <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
+    </form>
+
+    <div id="clock"></div>
 
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
     <script src="/static/js/jquery-ui.js"></script>
     <script>
+        $("#autocomplete").focus();
         $(document).ready(function() {
+            $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
+                var $this = $(this).html(event.strftime('%S'));
+            }).on('finish.countdown', function(event) {
+                var formdata = new FormData();
+                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                formdata.append("song_id", "<%= @random_song.id %>");
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/retrieve_answer',
+                    data: formdata,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(data) {
+                        var answer = "<div id='retrieved_answer'>" + data + "</div>";
+                        $("#clock").html('Time up! The answer was: ' + answer);
+                        $("#retrieved_answer").fadeIn(2000);
+                        $("#picture-item").css("background", "url('http://cdn.myanimelist.net/images/anime/13/44187l.jpg') center no-repeat");
+                    },
+                    error: function() {}
+                });
+            });
             $(window).keyup(function (event) {
                 var search_value = $('#autocomplete').val();
                 var formdata = new FormData();
@@ -20,11 +111,35 @@
                     contentType: false,
 
                     success: function(data) {
-                        console.log(data);
-                        console.log(data[0]);
                         $( "#autocomplete" ).autocomplete({
-                           source: data
-                       });
+                            source: data
+                        });
+                    },
+                    error: function() {}
+                });
+            });
+            $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
+                var answer = $(this).val();
+                console.log(answer);
+                var formdata = new FormData();
+                formdata.append("answer", answer);
+                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                formdata.append("song_id", "<%= @random_song.id %>");
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/submit_answer',
+                    data: formdata,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(data) {
+                        if(data == "Correct") {
+                            $("#clock").countdown('stop');
+                            $("#clock").html('Correct!');
+                            $("#picture-item").css("background", "url('http://cdn.myanimelist.net/images/anime/13/44187l.jpg') center no-repeat");
+                            setTimeout(function() { location.reload()}, 2000);
+                        }
                     },
                     error: function() {}
                 });
