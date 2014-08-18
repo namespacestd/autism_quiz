@@ -155,7 +155,7 @@
                             $("#clock").html('Correct!');
                             $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
                             $("#picture-item").css("background-size", "contain");
-                            setTimeout(function() { location.reload()}, 2000);
+                            setTimeout(function() { location.reload(true)}, 2000);
                         }
                     },
                     error: function() {}
@@ -163,7 +163,7 @@
             });
 
             function try_answer() {
-                
+
             }
         });
     </script>
