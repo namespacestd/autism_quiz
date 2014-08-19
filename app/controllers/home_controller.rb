@@ -80,7 +80,7 @@ class HomeController < ActionController::Base
     song_id = params[:song_id]
     answer = params[:answer]
 
-    if cookies.signed[:last_scored] and Float((Time.now - cookies.signed[:last_scored])) > 3
+    if cookies.signed[:last_scored].nil? or Float((Time.now - cookies.signed[:last_scored])) > 3
       if song_id and answer
           target_music = Music.find(song_id)
           if !target_music.nil? and target_music.anime == answer
