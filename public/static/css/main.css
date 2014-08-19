@@ -56,6 +56,16 @@ body, html {
     font-size: 50px;
     color: darkgrey;
 }
+#skip {
+    display: inline-block;
+    font-size: 35px;
+    cursor: pointer;
+    padding: 10px 15px;
+    border: 1px solid black;
+    background: #999;
+    border-radius: 5px;
+    cursor: pointer;
+}
 #retrieved_answer {
     display: none;
     color: darkgrey;

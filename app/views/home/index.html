@@ -37,38 +37,48 @@
         <!--</form>-->
 
         <div id="clock"></div>
+        <div id="skip">Skip</div>
 
         <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
         <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
         <script src="/static/js/jquery-ui.js"></script>
         <script>
             $("#autocomplete").focus();
+            function request_answer() {
+                $("#skip").hide();
+                var formdata = new FormData();
+                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                formdata.append("song_id", "<%= @random_song.id %>");
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/retrieve_answer',
+                    data: formdata,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(data) {
+                        var answer = "<div id='retrieved_answer'>" + data + "</div>";
+                        $("#clock").html('Time up! The answer was: ' + answer);
+                        $("#retrieved_answer").fadeIn(2000);
+                        $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
+                        $("#picture-item").css("background-size", "contain");
+                        $("#minus-one").fadeIn(1000);
+                        setTimeout(function() { location.reload(true)}, 2000);
+                    },
+                    error: function() {}
+                });
+            }
+
+            $("#skip").click(function() {
+                $('#clock').countdown('pause');
+                request_answer();
+            });
             $(document).ready(function() {
                 $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
                     var $this = $(this).html(event.strftime('%S'));
                 }).on('finish.countdown', function(event) {
-                    var formdata = new FormData();
-                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
-                    formdata.append("song_id", "<%= @random_song.id %>");
-
-                    $.ajax({
-                        method: 'POST',
-                        url: '/retrieve_answer',
-                        data: formdata,
-                        processData: false,
-                        contentType: false,
-
-                        success: function(data) {
-                            var answer = "<div id='retrieved_answer'>" + data + "</div>";
-                            $("#clock").html('Time up! The answer was: ' + answer);
-                            $("#retrieved_answer").fadeIn(2000);
-                            $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
-                            $("#picture-item").css("background-size", "contain");
-                            $("#minus-one").fadeIn(1000);
-                            setTimeout(function() { location.reload(true)}, 2000);
-                        },
-                        error: function() {}
-                    });
+                    request_answer();
                 });
                 $(window).keyup(function (event) {
                     var search_value = $('#autocomplete').val();
