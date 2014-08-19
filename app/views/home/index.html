@@ -71,7 +71,7 @@
             }
 
             $("#skip").click(function() {
-                $('#clock').countdown('pause');
+                $("#clock").countdown('stop');
                 request_answer();
             });
             $(document).ready(function() {
@@ -120,6 +120,7 @@
                         success: function(data) {
                             if(data == "Correct") {
                                 $("#clock").countdown('stop');
+                                $("#skip").hide();
                                 $("#clock").html('Correct!');
                                 $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
                                 $("#picture-item").css("background-size", "contain");
