@@ -1,0 +1,118 @@
+
+body, html {
+    font-family: 'Open Sans';
+    font-size: 18px;
+}
+#content {
+    width: 1300px;
+    margin: 0px auto;
+}
+#left-content {
+    width: 200px;
+    min-height: 300px;
+    float: left;
+}
+#main-content {
+    width: 800px;
+    margin: 0px auto;
+    margin-top: 50px;
+    text-align: center;
+    float: left;
+}
+#right-content {
+    width: 300px;
+    min-height: 300px;
+    float: left;
+    text-align: center;
+}
+#music-item {
+    padding: 35px 0px;
+}
+#picture-item {
+    position: relative;
+    display: block;
+    margin: 0px auto;
+    padding: 35px 0px;
+    padding-bottom: 0px;
+    height: 400px;
+    width: 400px;
+    background: url('/static/img/question_mark.jpg') center no-repeat;
+}
+#main-content input[type="text"] {
+    font-family: 'Open Sans';
+    font-size: 30px;
+    padding: 10px;
+    padding-left: 15px;
+    width: 700px;
+    border: 1px solid #999;
+    border-radius: 5px;
+    text-align: center;
+}
+#main-content input[type="text"]:focus {
+    box-shadow: 0 0 7px #60c86c;
+}
+#clock {
+    padding: 30px;
+    font-size: 50px;
+    color: darkgrey;
+}
+#retrieved_answer {
+    display: none;
+    color: darkgrey;
+    padding: 10px 0px;
+}
+#audio-controls {
+    width: 600px;
+}
+#mini-button {
+    display: inline-block;
+    height: 50px;
+    padding: 10px;
+    padding-top: 30px;
+    border: 1px solid #999;
+    cursor: pointer;
+    border-radius: 5px;
+}
+#mini-button:hover {
+    background-color: grey;
+}
+.title {
+    font-size: 30px;
+    padding-bottom: 20px;
+}
+.submit-field input[type="submit"] {
+    width: 200px;
+    font-size: 30px;
+    font-family: "Open Sans";
+    margin: 20px 0px;
+    padding: 10px;
+    cursor: pointer;
+}
+#skip-button {
+    width: 150px;
+    margin-left: 20px;
+}
+#username {
+    font-size: 30px;
+    margin-top: 35px;
+}
+#thin-divider {
+    margin: 7.5px 0px;
+    height: 3px;
+    width: 100%;
+    background-color: lightgrey;
+}
+.score-placement {
+    display: none;
+    font-size: 75px;
+    position: absolute;
+    right: -150px;
+    top: 165px;
+    color: #99FF66;
+    text-shadow: 1px 1px #999;
+}
+#plus-one {
+}
+#minus-one {
+    color: #FF3300;
+}

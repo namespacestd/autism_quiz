@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140816215421) do
+ActiveRecord::Schema.define(:version => 20140819031907) do
 
   create_table "animes", :primary_key => "name", :force => true do |t|
     t.integer "ranking"
@@ -29,6 +29,12 @@ ActiveRecord::Schema.define(:version => 20140816215421) do
     t.string   "image_content_type"
     t.integer  "image_file_size"
     t.datetime "image_updated_at"
+  end
+
+  create_table "scores", :force => true do |t|
+    t.string  "username"
+    t.string  "uuid"
+    t.integer "score"
   end
 
   create_table "synonyms", :id => false, :force => true do |t|

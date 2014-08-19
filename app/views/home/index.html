@@ -1,171 +1,131 @@
 
-<%= content_for :main_body do %>
-    <style>
-        body, html {
-            font-family: 'Open Sans';
-            font-size: 18px;
-        }
-        #main-content {
-            padding-top: 100px;
-            width: 1000px;
-            margin: 0px auto;
-            text-align: center;
-        }
-        #music-item {
-            padding: 35px 0px;
-        }
-        #picture-item {
-            display: block;
-            margin: 0px auto;
-            padding: 35px 0px;
-            padding-bottom: 0px;
-            height: 400px;
-            width: 400px;
-            background: url('/static/img/question_mark.jpg') center no-repeat;
-        }
-        #main-content input[type="text"] {
-            font-family: 'Open Sans';
-            font-size: 30px;
-            padding: 10px;
-            padding-left: 15px;
-            width: 700px;
-            border: 1px solid #999;
-            border-radius: 5px;
-            text-align: center;
-        }
-        #main-content input[type="text"]:focus {
-            box-shadow: 0 0 7px #60c86c;
-        }
-        #clock {
-            padding: 30px;
-            font-size: 50px;
-            color: darkgrey;
-        }
-        #retrieved_answer {
-            display: none;
-            color: darkgrey;
-            padding: 10px 0px;
-        }
-        #audio-controls {
-            width: 600px;
-        }
-        #mini-button {
-            display: inline-block;
-            height: 50px;
-            padding: 10px;
-            padding-top: 30px;
-            border: 1px solid #999;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #mini-button:hover {
-            background-color: grey;
-        }
-    </style>
-
-    <% @random_song = Music.random_song() %>
-
-    <!--<form action="/submit_answer" method="post">-->
-        <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
-        <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
-        <div id="picture-item"> </div>
-        <div id="music-item">
-            <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
-                <source src="<%= @random_song.music_file %>" type="audio/mpeg">
-                <embed height="50" width="100" src="<%= @random_song.music_file %>">
-            </audio>
+<%= content_for :right_content do %>
+    <% if !cookies.signed[:username].nil? %>
+        <div id="user-panel">
+            <div id="username"> <%= cookies.signed[:username] %> - <%= Score.get_score(cookies.signed[:id], cookies.signed[:username]).score %></div>
         </div>
-        <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
-        <button id="mini-button"></button>
-    <!--</form>-->
+        <div id="thin-divider"></div>
+        <% for score in Score.order(:score).reverse %>
+            <div class="scoreboard-item"> <%= score.username %> - <%= score.score %> </div>
+        <% end %>
+    <% end %>
+<% end %>
 
-    <div id="clock"></div>
+<%= content_for :main_body do %>
+    <link rel="stylesheet" href="/static/css/main.css">
 
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
-    <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
-    <script src="/static/js/jquery-ui.js"></script>
-    <script>
-        $("#autocomplete").focus();
-        $(document).ready(function() {
-            $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
-                var $this = $(this).html(event.strftime('%S'));
-            }).on('finish.countdown', function(event) {
-                var formdata = new FormData();
-                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
-                formdata.append("song_id", "<%= @random_song.id %>");
+    <% if cookies.signed[:username].nil? %>
+        <form action="/alias" method="post">
+            <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+            <div class="title"> What is your alias? </div>
+            <input type="text" name="username"></input>
+            <div class="submit-field"><input type="submit" value="Submit"></input><input id="skip-button" type="submit" value="Skip"></input></div>
+        </form>
+    <% else %>
+        <!--<form action="/submit_answer" method="post">-->
+            <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+            <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
+            <div id="picture-item"><div id="plus-one" class="score-placement">+1</div><div id="minus-one" class="score-placement">-1</div></div>
+            <div id="music-item">
+                <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
+                    <source src="<%= @random_song.music_file %>" type="audio/mpeg">
+                    <embed height="50" width="100" src="<%= @random_song.music_file %>">
+                </audio>
+            </div>
+            <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
+            <button id="mini-button"></button>
+        <!--</form>-->
 
-                $.ajax({
-                    method: 'POST',
-                    url: '/retrieve_answer',
-                    data: formdata,
-                    processData: false,
-                    contentType: false,
+        <div id="clock"></div>
 
-                    success: function(data) {
-                        var answer = "<div id='retrieved_answer'>" + data + "</div>";
-                        $("#clock").html('Time up! The answer was: ' + answer);
-                        $("#retrieved_answer").fadeIn(2000);
-                        $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
-                        $("#picture-item").css("background-size", "contain");
-                        setTimeout(function() { location.reload(true)}, 2000);
-                    },
-                    error: function() {}
-                });
-            });
-            $(window).keyup(function (event) {
-                var search_value = $('#autocomplete').val();
-                var formdata = new FormData();
-                formdata.append("search", search_value);
-                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+        <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
+        <script src="/static/js/jquery-ui.js"></script>
+        <script>
+            $("#autocomplete").focus();
+            $(document).ready(function() {
+                $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
+                    var $this = $(this).html(event.strftime('%S'));
+                }).on('finish.countdown', function(event) {
+                    var formdata = new FormData();
+                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                    formdata.append("song_id", "<%= @random_song.id %>");
 
-                $.ajax({
-                    method: 'POST',
-                    url: '/autocomplete',
-                    data: formdata,
-                    processData: false,
-                    contentType: false,
+                    $.ajax({
+                        method: 'POST',
+                        url: '/retrieve_answer',
+                        data: formdata,
+                        processData: false,
+                        contentType: false,
 
-                    success: function(data) {
-                        $( "#autocomplete" ).autocomplete({
-                            source: data
-                        });
-                    },
-                    error: function() {}
-                });
-            });
-
-            $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
-                var answer = $(this).val();
-                console.log(answer);
-                var formdata = new FormData();
-                formdata.append("answer", answer);
-                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
-                formdata.append("song_id", "<%= @random_song.id %>");
-
-                $.ajax({
-                    method: 'POST',
-                    url: '/submit_answer',
-                    data: formdata,
-                    processData: false,
-                    contentType: false,
-
-                    success: function(data) {
-                        if(data == "Correct") {
-                            $("#clock").countdown('stop');
-                            $("#clock").html('Correct!');
+                        success: function(data) {
+                            var answer = "<div id='retrieved_answer'>" + data + "</div>";
+                            $("#clock").html('Time up! The answer was: ' + answer);
+                            $("#retrieved_answer").fadeIn(2000);
                             $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
                             $("#picture-item").css("background-size", "contain");
+                            $("#minus-one").fadeIn(1000);
                             setTimeout(function() { location.reload(true)}, 2000);
-                        }
-                    },
-                    error: function() {}
+                        },
+                        error: function() {}
+                    });
                 });
+                $(window).keyup(function (event) {
+                    var search_value = $('#autocomplete').val();
+                    var formdata = new FormData();
+                    formdata.append("search", search_value);
+                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+
+                    $.ajax({
+                        method: 'POST',
+                        url: '/autocomplete',
+                        data: formdata,
+                        processData: false,
+                        contentType: false,
+
+                        success: function(data) {
+                            $( "#autocomplete" ).autocomplete({
+                                source: data
+                            });
+                        },
+                        error: function() {}
+                    });
+                });
+
+                $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
+                    var answer = $(this).val();
+                    console.log(answer);
+                    var formdata = new FormData();
+                    formdata.append("answer", answer);
+                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                    formdata.append("song_id", "<%= @random_song.id %>");
+
+                    $.ajax({
+                        method: 'POST',
+                        url: '/submit_answer',
+                        data: formdata,
+                        processData: false,
+                        contentType: false,
+
+                        success: function(data) {
+                            if(data == "Correct") {
+                                $("#clock").countdown('stop');
+                                $("#clock").html('Correct!');
+                                $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
+                                $("#picture-item").css("background-size", "contain");
+                                $("#plus-one").fadeIn(1000);
+                                setTimeout(function() { location.reload(true)}, 2000);
+                            }
+                        },
+                        error: function() {}
+                    });
+                });
+
+                function try_answer() {
+
+                }
             });
-
-            function try_answer() {
-
-            }
-        });
-    </script>
+        </script>
+    <% end %>
 <% end %>
 

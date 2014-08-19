@@ -5,6 +5,7 @@ AnimeOpQuiz::Application.routes.draw do
     match "/admin/add_op_entry" => "home#add_op_entry", :via => [:post]
     match "/submit_answer" => "home#submit_answer", :via => [:post]
     match "/retrieve_answer" => "home#retrieve_answer", :via => [:post]
+    match "/alias" => "home#alias", :via => [:post]
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

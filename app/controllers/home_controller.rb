@@ -6,6 +6,36 @@ class HomeController < ActionController::Base
 
   def index
       @game_started = true
+      @random_song = Music.random_song()
+      if cookies.signed[:answering]
+          score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
+          if !score.empty? and score[0].score != 0
+              score[0].score -= 1
+              score[0].save()
+          end
+      end
+      cookies.signed[:answering] = true
+  end
+
+  def alias
+    username = params[:username]
+    if !username.nil? && username != ""
+      cookies.signed[:username] = username
+    else
+      cookies.signed[:username] = "Anonymous"
+    end
+
+    cookies.signed[:id] = SecureRandom.uuid
+    score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
+    if !score.empty?
+      score = Score.new
+      score.username = cookies.signed[:username]
+      score.uuid = cookies.signed[:id]
+      score.score = 0
+      score.save()
+    end
+
+    redirect_to "/" and return
   end
 
   def ajax_autocomplete
@@ -50,13 +80,20 @@ class HomeController < ActionController::Base
     song_id = params[:song_id]
     answer = params[:answer]
 
-    if song_id and answer
-        target_music = Music.find(song_id)
-        puts target_music.anime
-        puts target_music.anime == answer
-        if !target_music.nil? and target_music.anime == answer
-            render :text => "Correct" and return
-        end
+    if cookies.signed[:last_scored] and Float((Time.now - cookies.signed[:last_scored])) > 3
+      if song_id and answer
+          target_music = Music.find(song_id)
+          if !target_music.nil? and target_music.anime == answer
+              score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
+              if !score.empty?
+                score[0].score += 1
+                score[0].save()
+              end
+              cookies.signed[:last_scored] = Time.now
+              cookies.signed[:answering] = false
+              render :text => "Correct" and return
+          end
+      end
     end
 
     render :text => "Wrong" and return
@@ -68,6 +105,12 @@ class HomeController < ActionController::Base
     if song_id
       target_music = Music.find(song_id)
       if !target_music.nil?
+        score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
+        if !score.empty? and score[0].score != 0
+            score[0].score -= 1
+            score[0].save()
+        end
+        cookies.signed[:answering] = false
         render :text => target_music.anime and return
       end
     end

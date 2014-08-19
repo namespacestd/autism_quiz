@@ -11,8 +11,16 @@
     </head>
 
     <body>
-        <div id="main-content">
-            <%= yield :main_body %>
+        <div id="content">
+            <div id="left-content">
+                <%= yield :left_content %>
+            </div>
+            <div id="main-content">
+                <%= yield :main_body %>
+            </div>
+            <div id="right-content">
+                <%= yield :right_content %>
+            </div>
         </div>
     </body>
 </html>
