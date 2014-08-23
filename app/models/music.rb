@@ -6,7 +6,13 @@ class Music < ActiveRecord::Base
   validates_attachment_content_type :music_file, :content_type => [ "audio/mpeg" ]
   validates_attachment_content_type :image, :content_type => /\Aimage\/.*\Z/
 
-  def self.random_song() 
-    return Music.order("RAND()").first
+  @@current_list = nil
+
+  def self.random_song()
+    if @@current_list == nil || @@current_list.empty? 
+        @@current_list = Music.order("RAND()")
+    end
+
+    return @@current_list.pop
   end
 end
