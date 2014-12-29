@@ -4,6 +4,8 @@ class HomeController < ActionController::Base
   protect_from_forgery with: :exception
   layout "application"
 
+  require 'timeout'
+
   def index
       @game_started = true
       @random_song = Music.random_song()
@@ -50,30 +52,73 @@ class HomeController < ActionController::Base
         anime_results = anime_results.results.map{|ele| ele.name}
         puts anime_results
     end
-    render :json => anime_results[0..5]
+
+    oped_map = {}
+
+    for anime in anime_results[0..5]
+      oped_map[anime] = Oped.where(:anime_key => anime).map{|ele| (ele.name + " by " + ele.artist)}
+      puts oped_map[anime]
+    end
+
+    render :json => {
+      "anime" => anime_results[0..5],
+      "opeds" => oped_map
+    }
   end
 
   def add_op_entry
     title = params[:title]
-    music_file = params[:music_file]
-    artist = params[:artist]
     image_file = params[:image_file]
-    name = params[:song_name]
+    url = params[:music_url]
+    oped = params[:oped]
+    mp3_link = ""
+
+    while mp3_link == ""
+      Timeout::timeout(5000) {
+        mp3_link = `casperjs convert_youtube_to_mp3.js --url="#{url}"`
+      }
+    end
+
+    music_entry = Music.new
+    music_entry.music = open(mp3_link)
+    music_entry.save()
+
 
     target_anime = Anime.where(:name => title)[0]
     
     if target_anime
       music_entry = Music.new
-      music_entry.music_file = music_file
+      music_entry.music = music_file
       music_entry.anime = title
-      music_entry.name = name
-      music_entry.artist = artist
       music_entry.image = image_file
       music_entry.save()
       redirect_to "/admin/add_page"
     else
       render :text => "RAWR"
     end
+  end
+
+  def add_op_entry_new
+    url = params[:music_url]
+    mp3_link = ""
+
+    while mp3_link == ""
+      Timeout::timeout(5000) {
+        mp3_link = `casperjs convert_youtube_to_mp3.js --url="#{url}"`
+      }
+    end
+
+    music_entry = Music.new
+    music_entry.music = open(mp3_link)
+    music_entry.save()
+
+    puts mp3_link
+
+    render :text => "RAWR"
+  end
+
+  def test_url
+
   end
 
   def submit_answer

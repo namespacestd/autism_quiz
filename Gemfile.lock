@@ -1,11 +1,11 @@
 GIT
   remote: git://github.com/thoughtbot/paperclip.git
-  revision: e8c1dc8a26183cf10e5eac7fb29eb7bdcf51d01f
+  revision: 0e39d750f2fed89f3bafbb5a819810e1fc26e126
   specs:
-    paperclip (4.2.0)
+    paperclip (4.2.1)
       activemodel (>= 3.0.0)
       activesupport (>= 3.0.0)
-      cocaine (~> 0.5.3)
+      cocaine (~> 0.5.5)
       mime-types
 
 GEM
@@ -45,7 +45,7 @@ GEM
     builder (3.0.4)
     climate_control (0.0.3)
       activesupport (>= 3.0)
-    cocaine (0.5.4)
+    cocaine (0.5.5)
       climate_control (>= 0.0.3, < 1.0)
     erubis (2.7.0)
     execjs (2.2.0)

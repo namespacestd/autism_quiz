@@ -3,9 +3,11 @@
     <form action="/admin/add_op_entry" method="post" enctype="multipart/form-data">
         <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
         <div> Anime: <input type="text" name="title" id="autocomplete" required /> </div>
-        <div> Artist: <input type="text" name="artist" required /> </div>
-        <div> Song Name: <input type="text" name="song_name" required /> </div>
-        <div> Music File: <input type="file" name='music_file' class="upload" required /> </div>
+        <div> Opeds: 
+            <select name="oped" required>
+            </select>
+        </div>
+        <div> Youtube Url: <input name="music_url" type="text" required></input></div>
         <div> Image File: <input type="file" name='image_file' class="upload" required /> </div>
         <input type="submit"></input>
     </form>
@@ -15,6 +17,8 @@
     <script src="/static/js/jquery-ui.js"></script>
     <script>
         $(document).ready(function() {
+            var oped_map = null;
+
             $(window).keyup(function (event) {
                 var search_value = $('#autocomplete').val();
                 var formdata = new FormData();
@@ -32,8 +36,18 @@
                         console.log(data);
                         console.log(data[0]);
                         $( "#autocomplete" ).autocomplete({
-                           source: data
-                       });
+                           source: data["anime"]
+                        });
+                        oped_map = data["opeds"];
+                        setTimeout(function() {
+                            var current_title = $("input[name='title']").val();
+                            var opeds = oped_map[current_title];
+                            console.log(opeds);
+                            $("select[name='oped']").empty();
+                            for(var i=0; i<opeds.length; i++) {
+                                $("select[name='oped']").append(new Option(opeds[i], opeds[i]));
+                            }
+                        }, 1500);
                     },
                     error: function() {}
                 });

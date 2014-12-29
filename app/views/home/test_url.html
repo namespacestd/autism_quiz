@@ -1,0 +1,14 @@
+
+
+<%= content_for :main_body do %>
+    <form action="/admin/add_op_entry_new" method="post" enctype="multipart/form-data">
+        <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+        <div> Music URL <input name="music_url" type="text" required></input></div>
+        <input type="submit"></input>
+    </form>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <script src="/static/js/jquery-ui.js"></script>
+
+<% end %>
+

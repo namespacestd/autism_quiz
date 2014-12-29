@@ -11,24 +11,31 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140819031907) do
+ActiveRecord::Schema.define(:version => 20141228190034) do
 
-  create_table "animes", :primary_key => "name", :force => true do |t|
+  create_table "animes", :force => true do |t|
+    t.string  "name"
     t.integer "ranking"
   end
 
   create_table "musics", :force => true do |t|
     t.string   "name"
-    t.string   "artist"
-    t.string   "anime"
-    t.string   "music_file_file_name"
-    t.string   "music_file_content_type"
-    t.integer  "music_file_file_size"
-    t.datetime "music_file_updated_at"
+    t.integer  "anime_id"
+    t.integer  "oped_id"
+    t.string   "music_file_name"
+    t.string   "music_content_type"
+    t.integer  "music_file_size"
+    t.datetime "music_updated_at"
     t.string   "image_file_name"
     t.string   "image_content_type"
     t.integer  "image_file_size"
     t.datetime "image_updated_at"
+  end
+
+  create_table "opeds", :force => true do |t|
+    t.string "name"
+    t.string "artist"
+    t.string "anime_key"
   end
 
   create_table "scores", :force => true do |t|
@@ -37,12 +44,10 @@ ActiveRecord::Schema.define(:version => 20140819031907) do
     t.integer "score"
   end
 
-  create_table "synonyms", :id => false, :force => true do |t|
+  create_table "synonyms", :force => true do |t|
     t.string "name"
     t.string "anime_key"
   end
-
-  add_index "synonyms", ["anime_key"], :name => "anime_key"
 
   create_table "test_tables", :force => true do |t|
   end
