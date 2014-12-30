@@ -3,6 +3,7 @@ class CreateAnimeTable < ActiveRecord::Migration
     create_table :animes do |t|
         t.string :name
         t.integer :ranking
+        t.string :image_link
     end
 
     create_table :synonyms do |t|

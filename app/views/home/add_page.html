@@ -8,7 +8,6 @@
             </select>
         </div>
         <div> Youtube Url: <input name="music_url" type="text" required></input></div>
-        <div> Image File: <input type="file" name='image_file' class="upload" required /> </div>
         <input type="submit"></input>
     </form>
 
@@ -18,6 +17,29 @@
     <script>
         $(document).ready(function() {
             var oped_map = null;
+            var previous_selection = null;
+
+            var oped_fill = function() {
+                try {
+                    var current_title = $("input[name='title']").val();
+                    if(current_title != previous_selection) {
+                        var opeds = oped_map[current_title];
+                        console.log(opeds);
+                        $("select[name='oped']").empty();
+                        for(var i=0; i<opeds.length; i++) {
+                            $("select[name='oped']").append(new Option(opeds[i], opeds[i]));
+                        }
+                        previous_selection = $("input[name='title']").val();
+                    }
+                } catch(ex) {
+                    console.log(ex);
+                }
+
+            };
+
+
+
+            window.setInterval(function() { oped_fill() }, 1000);
 
             $(window).keyup(function (event) {
                 var search_value = $('#autocomplete').val();
@@ -38,16 +60,9 @@
                         $( "#autocomplete" ).autocomplete({
                            source: data["anime"]
                         });
-                        oped_map = data["opeds"];
-                        setTimeout(function() {
-                            var current_title = $("input[name='title']").val();
-                            var opeds = oped_map[current_title];
-                            console.log(opeds);
-                            $("select[name='oped']").empty();
-                            for(var i=0; i<opeds.length; i++) {
-                                $("select[name='oped']").append(new Option(opeds[i], opeds[i]));
-                            }
-                        }, 1500);
+                        if(data["opeds"] != undefined) {
+                            oped_map = data["opeds"];
+                        }
                     },
                     error: function() {}
                 });

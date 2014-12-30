@@ -16,4 +16,4 @@
 /tmp
 
 # Ignore start.sh because it has credentials
-start.sh
+*start.sh

@@ -9,6 +9,9 @@ gem 'mysql2'
 gem 'sunspot_rails'
 gem 'sunspot_solr'
 gem 'progress_bar'
+gem 'delayed_job_active_record'
+gem 'daemons'
+gem 'delayed_paperclip'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'

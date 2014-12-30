@@ -28,8 +28,8 @@
             <div id="picture-item"><div id="plus-one" class="score-placement">+1</div><div id="minus-one" class="score-placement">-1</div></div>
             <div id="music-item">
                 <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
-                    <source src="<%= @random_song.music_file %>" type="audio/mpeg">
-                    <embed height="50" width="100" src="<%= @random_song.music_file %>">
+                    <source src="<%= @random_song.music.url.split("%").first %>" type="audio/mpeg">
+                    <embed height="50" width="100" src="<%= @random_song.music.url.split("%").first %>">
                 </audio>
             </div>
             <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
@@ -61,7 +61,7 @@
                         var answer = "<div id='retrieved_answer'>" + data + "</div>";
                         $("#clock").html('Time up! The answer was: ' + answer);
                         $("#retrieved_answer").fadeIn(2000);
-                        $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
+                        $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
                         $("#picture-item").css("background-size", "contain");
                         $("#minus-one").fadeIn(1000);
                         setTimeout(function() { location.reload(true)}, 2000);
@@ -95,7 +95,7 @@
 
                         success: function(data) {
                             $( "#autocomplete" ).autocomplete({
-                                source: data
+                                source: data["anime"]
                             });
                         },
                         error: function() {}
@@ -122,7 +122,7 @@
                                 $("#clock").countdown('stop');
                                 $("#skip").hide();
                                 $("#clock").html('Correct!');
-                                $("#picture-item").css("background", "url('<%= @random_song.image %>') center no-repeat");
+                                $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
                                 $("#picture-item").css("background-size", "contain");
                                 $("#plus-one").fadeIn(1000);
                                 setTimeout(function() { location.reload(true)}, 2000);

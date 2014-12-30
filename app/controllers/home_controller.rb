@@ -1,7 +1,4 @@
 class HomeController < ActionController::Base
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
-  protect_from_forgery with: :exception
   layout "application"
 
   require 'timeout'
@@ -56,42 +53,28 @@ class HomeController < ActionController::Base
     oped_map = {}
 
     for anime in anime_results[0..5]
-      oped_map[anime] = Oped.where(:anime_key => anime).map{|ele| (ele.name + " by " + ele.artist)}
-      puts oped_map[anime]
+      oped_map[CGI.escapeHTML(anime)] = Oped.where(:anime_key => anime).map{|ele| (ele.name + " by " + ele.artist)}
     end
 
+    puts oped_map
+
     render :json => {
-      "anime" => anime_results[0..5],
+      "anime" => anime_results[0..5].map{|ele| CGI.escapeHTML(ele)},
       "opeds" => oped_map
     }
   end
 
   def add_op_entry
     title = params[:title]
-    image_file = params[:image_file]
     url = params[:music_url]
     oped = params[:oped]
-    mp3_link = ""
 
-    while mp3_link == ""
-      Timeout::timeout(5000) {
-        mp3_link = `casperjs convert_youtube_to_mp3.js --url="#{url}"`
-      }
-    end
+    target_anime = Anime.where(:name => title).first
+    target_oped = Oped.where(:name => (oped.split("by")[0].strip!), :artist => (oped.split("by")[1].strip!)).first
 
-    music_entry = Music.new
-    music_entry.music = open(mp3_link)
-    music_entry.save()
+    if target_anime and target_oped
+      target_anime.delay.save_new_entry(target_oped, url)
 
-
-    target_anime = Anime.where(:name => title)[0]
-    
-    if target_anime
-      music_entry = Music.new
-      music_entry.music = music_file
-      music_entry.anime = title
-      music_entry.image = image_file
-      music_entry.save()
       redirect_to "/admin/add_page"
     else
       render :text => "RAWR"
@@ -128,7 +111,7 @@ class HomeController < ActionController::Base
     if cookies.signed[:last_scored].nil? or Float((Time.now - cookies.signed[:last_scored])) > 3
       if song_id and answer
           target_music = Music.find(song_id)
-          if !target_music.nil? and target_music.anime == answer
+          if !target_music.nil? and target_music.anime.name == answer
               score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
               if !score.empty?
                 score[0].score += 1

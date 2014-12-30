@@ -2,8 +2,10 @@ class Music < ActiveRecord::Base
   attr_accessible :anime_id, :name, :music, :image, :artist
 
   has_attached_file :music
-  has_attached_file :image
-  validates_attachment_content_type :image, :content_type => /\Aimage\/.*\Z/
+  validates_attachment_content_type :music, :content_type => [ "audio/mpeg" ]
+
+  belongs_to :anime
+  process_in_background :music
 
   @@current_list = nil
 
