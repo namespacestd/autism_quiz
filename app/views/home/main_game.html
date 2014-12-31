@@ -12,7 +12,7 @@
         <!--<form action="/submit_answer" method="post">-->
             <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
             <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
-            <div id="picture-item"><div id="plus-one" class="score-placement">+1</div><div id="minus-one" class="score-placement">-1</div></div>
+            <div id="picture-item"><div id="plus-one" class="score-placement">+2</div><div id="minus-one" class="score-placement">-1</div></div>
             <div id="music-item">
                 <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
                     <source src="<%= @random_song.music.url.split("%").first %>" type="audio/mpeg">
@@ -66,7 +66,7 @@
                 request_answer();
             });
             $(document).ready(function() {
-                $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
+                $('#clock').countdown(new Date(new Date().getTime() + 45000)).on('update.countdown', function(event) {
                     var $this = $(this).html(event.strftime('%S'));
                 }).on('finish.countdown', function(event) {
                     request_answer();

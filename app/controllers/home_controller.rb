@@ -133,7 +133,7 @@ class HomeController < ActionController::Base
           if !target_music.nil? and target_music.anime.name == answer
               score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
               if !score.empty?
-                score[0].correct += 1
+                score[0].correct += 2
                 score[0].save()
               end
               cookies.signed[:last_scored] = Time.now
