@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141229190237) do
+ActiveRecord::Schema.define(:version => 20141231032642) do
 
   create_table "animes", :force => true do |t|
     t.string   "name"
@@ -58,7 +58,8 @@ ActiveRecord::Schema.define(:version => 20141229190237) do
   create_table "scores", :force => true do |t|
     t.string  "username"
     t.string  "uuid"
-    t.integer "score"
+    t.integer "correct"
+    t.integer "wrong"
   end
 
   create_table "synonyms", :force => true do |t|

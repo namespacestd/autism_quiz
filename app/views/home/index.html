@@ -2,11 +2,12 @@
 <%= content_for :right_content do %>
     <% if !cookies.signed[:username].nil? %>
         <div id="user-panel">
-            <div id="username"> <%= cookies.signed[:username] %> - <%= Score.get_score(cookies.signed[:id], cookies.signed[:username]).score %></div>
+            <% self_score_object = Score.get_score(cookies.signed[:id], cookies.signed[:username]) %>
+            <div id="username"> <%= cookies.signed[:username] %> - <%= self_score_object.score %> (<%= self_score_object.correct %>/<%= self_score_object.total%>)</div>
         </div>
         <div id="thin-divider"></div>
-        <% for score in Score.order(:score).reverse %>
-            <div class="scoreboard-item"> <%= score.username %> - <%= score.score %> </div>
+        <% for score in Score.all.sort_by{|ele| ele.score }.reverse %>
+            <div class="scoreboard-item"> <%= score.username %> - <%= score.score %> (<%= score.correct %>/<%= score.total %>)</div>
         <% end %>
     <% end %>
 <% end %>
@@ -38,11 +39,14 @@
 
         <div id="clock"></div>
         <div id="skip">Skip</div>
+        <div id="song_name"></div>
 
         <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
         <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
         <script src="/static/js/jquery-ui.js"></script>
         <script>
+            var last_answer = null;
+            var last_keypress = new Date().getTime();
             $("#autocomplete").focus();
             function request_answer() {
                 $("#skip").hide();
@@ -58,13 +62,14 @@
                     contentType: false,
 
                     success: function(data) {
-                        var answer = "<div id='retrieved_answer'>" + data + "</div>";
+                        var answer = "<div id='retrieved_answer'>" + data["anime"] + "</div>";
                         $("#clock").html('Time up! The answer was: ' + answer);
+                        $("#song_name").html(data["song_name"]);
                         $("#retrieved_answer").fadeIn(2000);
                         $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
                         $("#picture-item").css("background-size", "contain");
                         $("#minus-one").fadeIn(1000);
-                        setTimeout(function() { location.reload(true)}, 2000);
+                        setTimeout(function() { location.reload(true)}, 3000);
                     },
                     error: function() {}
                 });
@@ -102,39 +107,59 @@
                     });
                 });
 
-                $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
-                    var answer = $(this).val();
-                    console.log(answer);
-                    var formdata = new FormData();
-                    formdata.append("answer", answer);
-                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
-                    formdata.append("song_id", "<%= @random_song.id %>");
-
-                    $.ajax({
-                        method: 'POST',
-                        url: '/submit_answer',
-                        data: formdata,
-                        processData: false,
-                        contentType: false,
-
-                        success: function(data) {
-                            if(data == "Correct") {
-                                $("#clock").countdown('stop');
-                                $("#skip").hide();
-                                $("#clock").html('Correct!');
-                                $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
-                                $("#picture-item").css("background-size", "contain");
-                                $("#plus-one").fadeIn(1000);
-                                setTimeout(function() { location.reload(true)}, 2000);
-                            }
-                        },
-                        error: function() {}
-                    });
+                $(document).keypress(function(e) {
+                    last_keypress = new Date().getTime();
                 });
 
-                function try_answer() {
+                $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
+                    try_answer();
+                });
 
-                }
+                window.setInterval(function() { 
+                    if((new Date().getTime()) > (last_keypress + 500)) { 
+                        try_answer();
+                    }
+                }, 750);
+
+                var try_answer = function() {
+                    var answer = $("input[name='answer']").val();
+                    if(last_answer != answer && answer != "") {
+                        last_answer = answer;
+                        console.log(answer);
+                        var formdata = new FormData();
+                        formdata.append("answer", answer);
+                        formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                        formdata.append("song_id", "<%= @random_song.id %>");
+
+                        $.ajax({
+                            method: 'POST',
+                            url: '/submit_answer',
+                            data: formdata,
+                            processData: false,
+                            contentType: false,
+
+                            success: function(data) {
+                                if(data["result"] == "Correct") {
+                                    $("#clock").countdown('stop');
+                                    $("#skip").hide();
+                                    $("#clock").html('Correct!');
+                                    $("#song_name").html(data["song_name"]);
+                                    $("#autocomplete").addClass("correct");
+                                    $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
+                                    $("#picture-item").css("background-size", "contain");
+                                    $("#plus-one").fadeIn(1000);
+                                    setTimeout(function() { location.reload(true)}, 2000);
+                                } else {
+                                    $("#autocomplete").stop(true, false).fadeTo(500, .1, function () {
+                                        $(this).addClass('wrong').fadeTo(500, 1);
+                                        setTimeout(function() { $("#autocomplete").removeClass('wrong').fadeTo(500, 1); }, 500);
+                                    });
+                                }
+                            },
+                            error: function() {}
+                        });
+                    }
+                };
             });
         </script>
     <% end %>

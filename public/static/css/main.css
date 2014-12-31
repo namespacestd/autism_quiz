@@ -49,6 +49,12 @@ body, html {
     text-align: center;
 }
 #main-content input[type="text"]:focus {
+    box-shadow: 0 0 7px #7BC7E8;
+}
+#main-content input[type="text"].wrong {
+    box-shadow: 0 0 7px red;
+}
+#main-content input[type="text"].correct {
     box-shadow: 0 0 7px #60c86c;
 }
 #clock {

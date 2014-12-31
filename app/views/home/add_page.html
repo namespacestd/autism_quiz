@@ -11,17 +11,17 @@
         <input type="submit"></input>
     </form>
 
-
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
     <script src="/static/js/jquery-ui.js"></script>
     <script>
-        $(document).ready(function() {
-            var oped_map = null;
-            var previous_selection = null;
+        var oped_map = null;
+        var previous_selection = null;
 
+        $(document).ready(function() {
             var oped_fill = function() {
                 try {
                     var current_title = $("input[name='title']").val();
+                    console.log("Current Title: " + current_title);
                     if(current_title != previous_selection) {
                         var opeds = oped_map[current_title];
                         console.log(opeds);
@@ -32,12 +32,9 @@
                         previous_selection = $("input[name='title']").val();
                     }
                 } catch(ex) {
-                    console.log(ex);
                 }
 
             };
-
-
 
             window.setInterval(function() { oped_fill() }, 1000);
 
@@ -61,6 +58,7 @@
                            source: data["anime"]
                         });
                         if(data["opeds"] != undefined) {
+                            console.log(oped_map);
                             oped_map = data["opeds"];
                         }
                     },

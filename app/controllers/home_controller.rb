@@ -8,8 +8,8 @@ class HomeController < ActionController::Base
       @random_song = Music.random_song()
       if cookies.signed[:answering]
           score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
-          if !score.empty? and score[0].score != 0
-              score[0].score -= 1
+          if !score.empty?
+              score[0].wrong += 1
               score[0].save()
           end
       end
@@ -24,13 +24,21 @@ class HomeController < ActionController::Base
       cookies.signed[:username] = "Anonymous"
     end
 
-    cookies.signed[:id] = SecureRandom.uuid
+    score_object = Score.where(:username => cookies.signed[:username]).first
+
+    if !score_object.nil? and (cookies.signed[:username] != "Anonymous")
+      cookies.signed[:id] = score_object.uuid
+    else
+      cookies.signed[:id] = SecureRandom.uuid
+    end
+
     score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
-    if !score.empty?
+    if score.empty?
       score = Score.new
       score.username = cookies.signed[:username]
       score.uuid = cookies.signed[:id]
-      score.score = 0
+      score.correct = 0
+      score.wrong = 0
       score.save()
     end
 
@@ -53,15 +61,21 @@ class HomeController < ActionController::Base
     oped_map = {}
 
     for anime in anime_results[0..5]
-      oped_map[CGI.escapeHTML(anime)] = Oped.where(:anime_key => anime).map{|ele| (ele.name + " by " + ele.artist)}
+      oped_map[CGI.escapeHTML(anime)] = Oped.where(:anime_key => anime).map{|ele| ((ele.name + " by " + ele.artist) + (!Music.where(:oped_id => ele.id).first.nil? ? " (ALREADY ADDED)" : ""))}
     end
 
     puts oped_map
 
-    render :json => {
-      "anime" => anime_results[0..5].map{|ele| CGI.escapeHTML(ele)},
-      "opeds" => oped_map
-    }
+    if anime_results[0..5].length > 0
+      render :json => {
+        "anime" => anime_results[0..5].map{|ele| CGI.escapeHTML(ele)},
+        "opeds" => oped_map
+      }
+    else
+      render :json => {
+        "anime" => []
+      }
+    end
   end
 
   def add_op_entry
@@ -73,7 +87,9 @@ class HomeController < ActionController::Base
     target_oped = Oped.where(:name => (oped.split("by")[0].strip!), :artist => (oped.split("by")[1].strip!)).first
 
     if target_anime and target_oped
-      target_anime.delay.save_new_entry(target_oped, url)
+      if Music.where(:oped_id => target_oped.id).empty?
+        target_anime.delay.save_new_entry(target_oped, url)
+      end
 
       redirect_to "/admin/add_page"
     else
@@ -114,12 +130,15 @@ class HomeController < ActionController::Base
           if !target_music.nil? and target_music.anime.name == answer
               score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
               if !score.empty?
-                score[0].score += 1
+                score[0].correct += 1
                 score[0].save()
               end
               cookies.signed[:last_scored] = Time.now
               cookies.signed[:answering] = false
-              render :text => "Correct" and return
+              render :json => {
+                "result" => "Correct",
+                "song_name" => target_music.oped.name + " by " + target_music.oped.artist
+              } and return
           end
       end
     end
@@ -134,12 +153,15 @@ class HomeController < ActionController::Base
       target_music = Music.find(song_id)
       if !target_music.nil?
         score = Score.where(:uuid => cookies.signed[:id], :username => cookies.signed[:username])
-        if !score.empty? and score[0].score != 0
-            score[0].score -= 1
+        if !score.empty?
+            score[0].wrong += 1
             score[0].save()
         end
         cookies.signed[:answering] = false
-        render :text => target_music.anime and return
+        render :json => {
+          "anime" => target_music.anime.name,
+          "song_name" => target_music.oped.name + " by " + target_music.oped.artist
+        } and return
       end
     end
     render :text => "Undefined" and return

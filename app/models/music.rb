@@ -4,6 +4,7 @@ class Music < ActiveRecord::Base
   has_attached_file :music
   validates_attachment_content_type :music, :content_type => [ "audio/mpeg" ]
 
+  belongs_to :oped
   belongs_to :anime
   process_in_background :music
 
