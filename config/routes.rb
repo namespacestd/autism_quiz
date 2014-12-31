@@ -9,4 +9,5 @@ AnimeOpQuiz::Application.routes.draw do
     match "/test_url" => "home#test_url", :via => [:get]
     match "/retrieve_answer" => "home#retrieve_answer", :via => [:post]
     match "/alias" => "home#alias", :via => [:post]
+    match "/main_game" => "home#main_game"
 end

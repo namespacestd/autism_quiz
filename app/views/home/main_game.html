@@ -1,0 +1,153 @@
+
+<%= content_for :main_body do %>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <% if cookies.signed[:username].nil? %>
+        <form action="/alias" method="post">
+            <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+            <div class="title"> What is your alias? </div>
+            <input type="text" name="username"></input>
+            <div class="submit-field"><input type="submit" value="Submit"></input><input id="skip-button" type="submit" value="Skip"></input></div>
+        </form>
+    <% else %>
+        <!--<form action="/submit_answer" method="post">-->
+            <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
+            <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
+            <div id="picture-item"><div id="plus-one" class="score-placement">+1</div><div id="minus-one" class="score-placement">-1</div></div>
+            <div id="music-item">
+                <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
+                    <source src="<%= @random_song.music.url.split("%").first %>" type="audio/mpeg">
+                    <embed height="50" width="100" src="<%= @random_song.music.url.split("%").first %>">
+                </audio>
+            </div>
+            <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
+            <button id="mini-button"></button>
+        <!--</form>-->
+
+        <div id="clock"></div>
+        <div id="skip">Skip</div>
+        <div id="song_name"></div>
+
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+        <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
+        <script src="/static/js/jquery-ui.js"></script>
+        <script>
+            var last_answer = null;
+            var last_keypress = new Date().getTime();
+            $("#autocomplete").focus();
+            function request_answer() {
+                $("#skip").hide();
+                var formdata = new FormData();
+                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                formdata.append("song_id", "<%= @random_song.id %>");
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/retrieve_answer',
+                    data: formdata,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(data) {
+                        var answer = "<div id='retrieved_answer'>" + data["anime"] + "</div>";
+                        $("#clock").html('Time up! The answer was: ' + answer);
+                        $("#song_name").html(data["song_name"]);
+                        $("#retrieved_answer").fadeIn(2000);
+                        $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
+                        $("#picture-item").css("background-size", "contain");
+                        $("#minus-one").fadeIn(1000);
+                        setTimeout(function() { window.location.href = window.location.href; }, 3000);
+                    },
+                    error: function() {}
+                });
+            }
+
+            $("#skip").click(function() {
+                $("#clock").countdown('stop');
+                request_answer();
+            });
+            $(document).ready(function() {
+                $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
+                    var $this = $(this).html(event.strftime('%S'));
+                }).on('finish.countdown', function(event) {
+                    request_answer();
+                });
+                $(window).keyup(function (event) {
+                    var search_value = $('#autocomplete').val();
+                    var formdata = new FormData();
+                    formdata.append("search", search_value);
+                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+
+                    $.ajax({
+                        method: 'POST',
+                        url: '/autocomplete',
+                        data: formdata,
+                        processData: false,
+                        contentType: false,
+
+                        success: function(data) {
+                            $( "#autocomplete" ).autocomplete({
+                                source: data["anime"]
+                            });
+                        },
+                        error: function() {}
+                    });
+                });
+
+                $(document).keypress(function(e) {
+                    last_keypress = new Date().getTime();
+                });
+
+                $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
+                    try_answer();
+                });
+
+                window.setInterval(function() { 
+                    if((new Date().getTime()) > (last_keypress + 500)) { 
+                        try_answer();
+                    }
+                }, 750);
+
+                var try_answer = function() {
+                    var answer = $("input[name='answer']").val();
+                    if(last_answer != answer && answer != "") {
+                        last_answer = answer;
+                        console.log(answer);
+                        var formdata = new FormData();
+                        formdata.append("answer", answer);
+                        formdata.append("authenticity_token", "<%= form_authenticity_token %>");
+                        formdata.append("song_id", "<%= @random_song.id %>");
+
+                        $.ajax({
+                            method: 'POST',
+                            url: '/submit_answer',
+                            data: formdata,
+                            processData: false,
+                            contentType: false,
+
+                            success: function(data) {
+                                if(data["result"] == "Correct") {
+                                    $("#clock").countdown('stop');
+                                    $("#skip").hide();
+                                    $("#clock").html('Correct!');
+                                    $("#song_name").html(data["song_name"]);
+                                    $("#autocomplete").addClass("correct");
+                                    $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
+                                    $("#picture-item").css("background-size", "contain");
+                                    $("#plus-one").fadeIn(1000);
+                                    setTimeout(function() { window.location.href = window.location.href; }, 2000);
+                                } else {
+                                    $("#autocomplete").stop(true, false).fadeTo(500, .1, function () {
+                                        $(this).addClass('wrong').fadeTo(500, 1);
+                                        setTimeout(function() { $("#autocomplete").removeClass('wrong').fadeTo(500, 1); }, 500);
+                                    });
+                                }
+                            },
+                            error: function() {}
+                        });
+                    }
+                };
+            });
+        </script>
+    <% end %>
+<% end %>
+

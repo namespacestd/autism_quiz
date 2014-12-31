@@ -1,167 +1,147 @@
+<%= content_for :left_content do %>
+    <style>
+        #chatroom-user-container {
+            text-align: center;
+            float: left;
+            width: 100px;
+        }
+        #chatroom {
+            margin-top: 25px;
+            width: 300px;
+            height: 650px;
+            float: left;
+        }
+        #current-users {
+            display: inline-block;
+        }
+        #chat-messages {
+            padding: 10px;
+            width: 278px;
+            height: 600px;
+            border: 1px solid #999;
+            overflow: scroll;
+        }
+        #chatroom input {
+            padding: 10px;
+            width: 276px;
+        }
+        .message {
+            width: 278px;
+            vertical-align: bottom;
+        }
+    </style>
+
+    <div id="chatroom-container">
+        <div id="chatroom">
+            <div id="chat-messages"></div>
+            <form id="chat-input">
+                <input type="text" id="chat-message" name="chat"></input>
+            </form>
+        </div>
+        <!--
+        <div id="chatroom-user-container">
+            Current Users
+            <div id="current-users">
+            </div>
+        </div>-->
+    </div>
+<% end %>
 
 <%= content_for :right_content do %>
+    <link rel="stylesheet" href="/static/css/main.css">
     <% if !cookies.signed[:username].nil? %>
         <div id="user-panel">
             <% self_score_object = Score.get_score(cookies.signed[:id], cookies.signed[:username]) %>
             <div id="username"> <%= cookies.signed[:username] %> - <%= self_score_object.score %> (<%= self_score_object.correct %>/<%= self_score_object.total%>)</div>
         </div>
         <div id="thin-divider"></div>
-        <% for score in Score.all.sort_by{|ele| ele.score }.reverse %>
-            <div class="scoreboard-item"> <%= score.username %> - <%= score.score %> (<%= score.correct %>/<%= score.total %>)</div>
-        <% end %>
+        <div id="scoreboard-items">
+            <% for score in Score.all.sort_by{|ele| ele.score }.reverse %>
+                <div class="scoreboard-item"> <%= score.username %> - <%= score.score %> (<%= score.correct %>/<%= score.total %>)</div>
+            <% end %>
+        </div>
     <% end %>
 <% end %>
 
 <%= content_for :main_body do %>
-    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            overflow: hidden;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            z-index: -1;
+        }
+    </style>
+    <iframe id="iframe" scrolling="no" src="/main_game"></iframe>
 
-    <% if cookies.signed[:username].nil? %>
-        <form action="/alias" method="post">
-            <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
-            <div class="title"> What is your alias? </div>
-            <input type="text" name="username"></input>
-            <div class="submit-field"><input type="submit" value="Submit"></input><input id="skip-button" type="submit" value="Skip"></input></div>
-        </form>
-    <% else %>
-        <!--<form action="/submit_answer" method="post">-->
-            <input name="authenticity_token" type="hidden" value="<%= form_authenticity_token %>" />
-            <input name="song_id" type="hidden" value="<%= @random_song.id %>" />
-            <div id="picture-item"><div id="plus-one" class="score-placement">+1</div><div id="minus-one" class="score-placement">-1</div></div>
-            <div id="music-item">
-                <audio id="audio-controls" controls <% if @game_started %> autoplay <% end %>>
-                    <source src="<%= @random_song.music.url.split("%").first %>" type="audio/mpeg">
-                    <embed height="50" width="100" src="<%= @random_song.music.url.split("%").first %>">
-                </audio>
-            </div>
-            <input type="text" name="answer" id="autocomplete" autocomplete="off"/>
-            <button id="mini-button"></button>
-        <!--</form>-->
+    <script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
 
-        <div id="clock"></div>
-        <div id="skip">Skip</div>
-        <div id="song_name"></div>
+    <script>
+        var socket = new io("0.0.0.0:3001");
+        var username = "<%= cookies.signed[:username] %>";
+        var is_first_load = true;
 
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
-        <script src="/static/js/jquery.countdown/jquery.countdown.min.js"></script>
-        <script src="/static/js/jquery-ui.js"></script>
-        <script>
-            var last_answer = null;
-            var last_keypress = new Date().getTime();
-            $("#autocomplete").focus();
-            function request_answer() {
-                $("#skip").hide();
-                var formdata = new FormData();
-                formdata.append("authenticity_token", "<%= form_authenticity_token %>");
-                formdata.append("song_id", "<%= @random_song.id %>");
-
-                $.ajax({
-                    method: 'POST',
-                    url: '/retrieve_answer',
-                    data: formdata,
-                    processData: false,
-                    contentType: false,
-
-                    success: function(data) {
-                        var answer = "<div id='retrieved_answer'>" + data["anime"] + "</div>";
-                        $("#clock").html('Time up! The answer was: ' + answer);
-                        $("#song_name").html(data["song_name"]);
-                        $("#retrieved_answer").fadeIn(2000);
-                        $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
-                        $("#picture-item").css("background-size", "contain");
-                        $("#minus-one").fadeIn(1000);
-                        setTimeout(function() { location.reload(true)}, 3000);
-                    },
-                    error: function() {}
-                });
+        $("#iframe").on("load", function () {
+            if(username == "" && !is_first_load) {
+                location.reload();
             }
+            socket.emit("score_update", "request");
+            is_first_load = false;
+        });
 
-            $("#skip").click(function() {
-                $("#clock").countdown('stop');
-                request_answer();
+        socket.emit("join_chat", "join");
+
+        socket.on("username_request", function(data) {
+            socket.emit("username_response", username);
+        });
+
+        socket.on("message_sent", function(data) {
+            console.log(data);
+            $("#chat-messages").append("<div class=\"message\">" + data + "</div>");
+            $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight   );
+            console.log($('#chat-messages').children().length);
+        });
+
+        /*
+        socket.on("current_users", function(data) {
+            $("#current-users").empty();
+            console.log(data);
+            for(var i=0; i<data.length; i++) {
+                $("#current-users").append("<div class=\"current-user\">" + data[i] + "</div>");
+            }
+        });*/
+
+        socket.on("score_update", function(data) {
+            var keys = Object.keys(data["scores"]);
+            $("#scoreboard-items").empty();
+            
+            var all_scores = [];
+
+            for(var i=0; i<keys.length; i++) {
+                data["scores"][keys[i]]["username"] = keys[i];
+                all_scores.push(data["scores"][keys[i]]);
+            }
+            all_scores.sort(function(a, b) {
+                return (a["score"] < b["score"]);
             });
-            $(document).ready(function() {
-                $('#clock').countdown(new Date(new Date().getTime() + 35000)).on('update.countdown', function(event) {
-                    var $this = $(this).html(event.strftime('%S'));
-                }).on('finish.countdown', function(event) {
-                    request_answer();
-                });
-                $(window).keyup(function (event) {
-                    var search_value = $('#autocomplete').val();
-                    var formdata = new FormData();
-                    formdata.append("search", search_value);
-                    formdata.append("authenticity_token", "<%= form_authenticity_token %>");
 
-                    $.ajax({
-                        method: 'POST',
-                        url: '/autocomplete',
-                        data: formdata,
-                        processData: false,
-                        contentType: false,
+            for(var i=0; i<all_scores.length; i++) {
+                $("#scoreboard-items").append("<div class=\"scoreboard-item\">" + all_scores[i]["username"] + " - " + all_scores[i]["score"] + " (" + all_scores[i]["correct"] + "/" + all_scores[i]["total"] + ")</div>");
+            }
+            $("#username").html(username + " - " + data["scores"][username]["score"] + " (" + data["scores"][username]["correct"] + "/" + data["scores"][username]["total"] + ")");
+        });
 
-                        success: function(data) {
-                            $( "#autocomplete" ).autocomplete({
-                                source: data["anime"]
-                            });
-                        },
-                        error: function() {}
-                    });
-                });
+        $("#chat-input").submit(function(event) {
+            event.preventDefault();
+            socket.emit("send_message", $("#chat-message").val());
+            $("#chat-message").val("");
+        });
+    </script>
 
-                $(document).keypress(function(e) {
-                    last_keypress = new Date().getTime();
-                });
 
-                $("input[name='answer']").on('autocompletechange change select autocompleteselect', function () {
-                    try_answer();
-                });
 
-                window.setInterval(function() { 
-                    if((new Date().getTime()) > (last_keypress + 500)) { 
-                        try_answer();
-                    }
-                }, 750);
-
-                var try_answer = function() {
-                    var answer = $("input[name='answer']").val();
-                    if(last_answer != answer && answer != "") {
-                        last_answer = answer;
-                        console.log(answer);
-                        var formdata = new FormData();
-                        formdata.append("answer", answer);
-                        formdata.append("authenticity_token", "<%= form_authenticity_token %>");
-                        formdata.append("song_id", "<%= @random_song.id %>");
-
-                        $.ajax({
-                            method: 'POST',
-                            url: '/submit_answer',
-                            data: formdata,
-                            processData: false,
-                            contentType: false,
-
-                            success: function(data) {
-                                if(data["result"] == "Correct") {
-                                    $("#clock").countdown('stop');
-                                    $("#skip").hide();
-                                    $("#clock").html('Correct!');
-                                    $("#song_name").html(data["song_name"]);
-                                    $("#autocomplete").addClass("correct");
-                                    $("#picture-item").css("background", "url('<%= @random_song.anime.image.url.split("%").first %>') center no-repeat");
-                                    $("#picture-item").css("background-size", "contain");
-                                    $("#plus-one").fadeIn(1000);
-                                    setTimeout(function() { location.reload(true)}, 2000);
-                                } else {
-                                    $("#autocomplete").stop(true, false).fadeTo(500, .1, function () {
-                                        $(this).addClass('wrong').fadeTo(500, 1);
-                                        setTimeout(function() { $("#autocomplete").removeClass('wrong').fadeTo(500, 1); }, 500);
-                                    });
-                                }
-                            },
-                            error: function() {}
-                        });
-                    }
-                };
-            });
-        </script>
-    <% end %>
 <% end %>
-

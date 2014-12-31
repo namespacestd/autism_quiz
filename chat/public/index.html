@@ -1,0 +1,187 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Chat Room</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+    <style>
+      #chatroom {
+        display: inline-block;
+        position: relative;
+        width: 900px;
+        height: 800px;
+        border: 1px solid black;
+        margin: 25px auto;
+        box-shadow: 0 0 5px #999;
+        overflow: hidden;
+        text-align: left;
+      }
+      #message-entry {
+        position: absolute;
+        bottom: 0px;
+        border: 0px;
+        border-top: 1px solid black;
+        width: 100%;
+        padding: 15px;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 18px;
+      }
+      #personal-username {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 24px;
+        padding: 15px;
+        margin: 0px auto;
+        text-align: center;
+      }
+      .glow {
+        display: inline-block;
+        text-shadow: 1px 1px 1px grey;
+        font-weight: bold;
+      }
+      #text-area {
+        overflow: hidden;
+        height: 660px;
+        padding: 10px;
+      }
+      .message-block {
+        display: inline-block;
+        width: 100%; 
+        font-family: 'Open Sans', sans-serif;
+        padding: 10px;
+        font-size: 18px;
+      }
+      #current-users {
+        display: inline-block;
+        width: 280px;
+        vertical-align: top;
+        margin: 25px auto;
+        font-family: 'Open Sans', sans-serif;        
+        font-size: 18px;
+      }
+      .centered {
+        text-align: center;
+      }
+      #title {
+        font-size: 24px;
+        font-weight: bold;
+        padding-bottom: 0px;
+      }
+      .user-block {
+        padding: 10px;
+      }
+      #main-body {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="room-selection">
+      What room are you trying to join? <input id="room-id" type="text" placeholder="room_id"></input>
+      What is your user id? <input id="user-id" type="text" placeholder="user_id"></input>
+      <input id="room-select-button" type="submit" value="Join Room"></input>
+    </div>
+    <div id="main-body" class="centered">
+      <div id="chatroom">
+        <div id="personal-username"> Your user id is: <div class="glow"> Username </div></div>
+        <div id="text-area">
+        </div>
+        <input type="text" id="message-entry"></input>
+      </div>
+      <div id="current-users">
+        <div id="title" class="user-block"> Current Users </div>
+      </div>
+    </div>
+
+  <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    $(document).ready(function () {
+      var line_height = 13;
+
+      $(window).keydown(function (event) {        
+        if (!(event.ctrlKey || event.metaKey || event.altKey))
+          $('#message-entry').focus();
+
+        if (event.which === 13) {
+          socket.emit('message', $('#message-entry').val());
+          $('#message-entry').val("");
+        }
+      });
+
+      var socket = io();
+      var username = null;
+
+      $("#room-select-button").click(function() {
+        socket.emit('join_room', { "room_id": $("#room-id").val(), "user_id" : $("#user-id").val() });
+      });
+
+      socket.on('join_room', function(data) {
+        $("#room-selection").hide();
+        $("#main-body").show();
+        $(".glow").text(data["user_id"]);
+        current_users = data.current_users;
+
+        $("#current-users").remove(".user-block");
+        console.log(current_users); 
+        for(var i=0; i<current_users.length; i++) {
+          $("#current-users").append("<div class='user-block'>" + current_users[i] + "</div>");
+        }
+      });
+
+      socket.on('username', function (data) {
+        username = data.username;
+        current_users = data.current_users;
+
+        $(".glow").text(username);
+
+        for(var name in current_users)
+          $("#current-users").append("<div id='" + name + "' class='user-block'>" + name + "</div>");
+      });
+      socket.on('left', function (data) {
+        username = data.username
+        $("#" + username).remove();
+
+        sendMessage(username + " has left the chatroom.");
+
+        current_users = data.current_users;
+
+        $("#current-users").empty();
+        $("#current-users").append("<div id=\"title\" class=\"user-block\"> Current Users </div>")
+        console.log(current_users); 
+        for(var i=0; i<current_users.length; i++) {
+          $("#current-users").append("<div class='user-block'>" + current_users[i] + "</div>");
+        }
+      });
+
+      socket.on('joined', function (data) {
+        current_users = data.current_users;
+
+        $("#current-users").empty();
+        $("#current-users").append("<div id=\"title\" class=\"user-block\"> Current Users </div>")
+        console.log(current_users); 
+        for(var i=0; i<current_users.length; i++) {
+          $("#current-users").append("<div class='user-block'>" + current_users[i] + "</div>");
+        }
+
+        sendMessage("User " + data.user_id + " has entered the chatroom.");
+      });
+      socket.on('message', function (data) {
+        console.log(data);
+        username = data.username
+        message = data.message 
+
+        sendMessage(username + ": " + message);
+      });
+
+      function sendMessage(message) {
+        var current_height = $('#text-area').children().length;
+        if(current_height > line_height)
+          $('#text-area').children()[0].remove();
+        $('#text-area').append("<div class='message-block'>" + message + "</div>");
+      }
+    });
+  </script>
+</body>
+</html>

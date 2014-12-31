@@ -12,6 +12,7 @@ gem 'progress_bar'
 gem 'delayed_job_active_record'
 gem 'daemons'
 gem 'delayed_paperclip'
+gem 'socket.io-rails'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'

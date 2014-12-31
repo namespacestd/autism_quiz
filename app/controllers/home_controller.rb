@@ -4,6 +4,9 @@ class HomeController < ActionController::Base
   require 'timeout'
 
   def index
+  end
+
+  def main_game
       @game_started = true
       @random_song = Music.random_song()
       if cookies.signed[:answering]

@@ -4,18 +4,18 @@ body, html {
     font-size: 18px;
 }
 #content {
-    width: 1300px;
+    width: 1400px;
     margin: 0px auto;
 }
 #left-content {
-    width: 200px;
+    width: 300px;
     min-height: 300px;
     float: left;
 }
 #main-content {
     width: 800px;
     margin: 0px auto;
-    margin-top: 50px;
+    margin-top: 25px;
     text-align: center;
     float: left;
 }
