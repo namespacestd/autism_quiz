@@ -57,7 +57,7 @@ io.on('connection', function (socket) {
       var score_map = {};
 
       for(var i=0; i<rows.length; i++) {
-        var score = rows[i]["correct"] - rows[i]["wrong"];
+        var score = (rows[i]["correct"] * 2) - rows[i]["wrong"];
         if(score < 0) {
           score = 0;
         }
