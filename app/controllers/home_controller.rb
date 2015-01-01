@@ -57,19 +57,23 @@ class HomeController < ActionController::Base
 
     anime_results = []
     if !current_search.nil?
-        anime_results = Sunspot.search(Anime) do
-                             fulltext current_search
-                         end
-        anime_results = anime_results.results[0..5].sort_by{|ele| ele.ranking}.map{|ele| ele.name }
-
-        if anime_results.length < 0
-          search_characters = self.name.chars.to_a
-          search_characters.delete("")
-
+        if Anime.where(:name => current_search).empty?
           anime_results = Sunspot.search(Anime) do
-                              fulltext search_characters.join("")
-          end
+                               fulltext current_search
+                           end
           anime_results = anime_results.results[0..5].sort_by{|ele| ele.ranking}.map{|ele| ele.name }
+
+          if anime_results.length < 0
+            search_characters = self.name.chars.to_a
+            search_characters.delete("")
+
+            anime_results = Sunspot.search(Anime) do
+                                fulltext search_characters.join("")
+            end
+            anime_results = anime_results.results[0..5].sort_by{|ele| ele.ranking}.map{|ele| ele.name }
+          end
+        else
+          anime_results = Anime.where(:name => current_search).map{|ele| ele.name }
         end
     end
 
