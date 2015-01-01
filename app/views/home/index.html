@@ -29,6 +29,13 @@
             width: 278px;
             vertical-align: bottom;
         }
+        #switch-button {
+            margin-top: 25px;
+            padding: 15px;
+        }
+        .centered {
+            text-align: center;
+        }
     </style>
 
     <div id="chatroom-container">
@@ -44,6 +51,9 @@
             <div id="current-users">
             </div>
         </div>-->
+    </div>
+    <div class="centered">
+        <button id="switch-button">Switch to Play-Only</button>
     </div>
 <% end %>
 
@@ -139,6 +149,16 @@
             event.preventDefault();
             socket.emit("send_message", $("#chat-message").val());
             $("#chat-message").val("");
+        });
+
+        $("#switch-button").click(function() {
+            if($("#switch-button").html() == "Switch to Play-Only") {
+                $("#iframe").attr("src", "/music_station");
+                $("#switch-button").html("Switch to Game");
+            } else {
+                $("#iframe").attr("src", "/main_game");
+                $("#switch-button").html("Switch to Play-Only");
+            }
         });
     </script>
 

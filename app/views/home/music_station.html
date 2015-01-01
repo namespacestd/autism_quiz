@@ -1,0 +1,23 @@
+
+
+<%= content_for :main_body do %>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <div id="music-item">
+        <audio id="audio-controls" controls autoplay>
+            <source src="<%= @random_song.music.url.split("%").first %>" type="audio/mpeg">
+                <embed height="50" width="100" src="<%= @random_song.music.url.split("%").first %>">
+        </audio>
+    </div>
+
+    <button id="skip"> Skip (Gets Next Random Song) </button>
+
+    <script>
+        $("#audio-controls").bind("ended", function() {
+            window.location.href = window.location.href;
+        });
+        $("#skip").click(function() {
+            window.location.href = window.location.href;
+        });
+    </script>
+<% end %>
+

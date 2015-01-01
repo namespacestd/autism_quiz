@@ -19,6 +19,10 @@ class HomeController < ActionController::Base
       cookies.signed[:answering] = true
   end
 
+  def music_station
+    @random_song = Music.random_song()
+  end
+
   def alias
     username = params[:username]
     if !username.nil? && username != ""
