@@ -1,7 +1,8 @@
 class Anime < ActiveRecord::Base
   searchable do
-    text :name, :as => :name_textp
+    text :name, :as => :name_textp, :boost => 3.0
     text :synonyms, :as => :synonyms_textp
+    text :characters, :as => :characters_textp
     integer :ranking
   end
 
@@ -10,6 +11,12 @@ class Anime < ActiveRecord::Base
   has_attached_file :image
   validates_attachment_content_type :image, :content_type => /\Aimage\/.*\Z/
   process_in_background :image
+
+  def characters
+    chars = self.name.chars.to_a
+    chars.delete("")
+    return chars.join("")
+  end
   
   def synonyms
     return Synonym.where(:anime_key => self.name).map{|ele| ele.name}.join(' ')

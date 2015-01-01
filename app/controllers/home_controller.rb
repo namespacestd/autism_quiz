@@ -55,15 +55,23 @@ class HomeController < ActionController::Base
     if !current_search.nil?
         anime_results = Sunspot.search(Anime) do
                              fulltext current_search
-                             order_by(:ranking, :asc)
                          end
-        anime_results = anime_results.results.map{|ele| ele.name}
-        puts anime_results
+        anime_results = anime_results.results[0..5].sort_by{|ele| ele.ranking}.map{|ele| ele.name }
+
+        if anime_results.length < 0
+          search_characters = self.name.chars.to_a
+          search_characters.delete("")
+
+          anime_results = Sunspot.search(Anime) do
+                              fulltext search_characters.join("")
+          end
+          anime_results = anime_results.results[0..5].sort_by{|ele| ele.ranking}.map{|ele| ele.name }
+        end
     end
 
     oped_map = {}
 
-    for anime in anime_results[0..5]
+    for anime in anime_results
       oped_map[CGI.escapeHTML(anime)] = Oped.where(:anime_key => anime).map{|ele| ((ele.name + " by " + ele.artist) + (!Music.where(:oped_id => ele.id).first.nil? ? " (ALREADY ADDED)" : ""))}
     end
 
